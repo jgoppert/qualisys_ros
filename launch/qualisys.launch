@@ -1,0 +1,8 @@
+<launch>
+  <node pkg="qualisys" type="node" name="qualisys" output="screen">
+    <param name="server" value="192.168.123.148"/>
+  </node>
+
+  <node pkg="tf2_ros" type="static_transform_publisher" name="qualisys_map" args="0 0 0 0 0 0 map qualisys"/>
+  <node type="rviz" name="rviz" pkg="rviz" args="-d $(find qualisys)/launch/qualisys.rviz"/>
+</launch>
