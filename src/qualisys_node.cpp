@@ -1,11 +1,16 @@
-#include "RTProtocol.h"
-#include "RTPacket.h"
 #include <unistd.h>
 #include <math.h>
-#include "ros/ros.h"
-#include "tf2/LinearMath/Matrix3x3.h"
-#include "tf2/LinearMath/Quaternion.h"
-#include "geometry_msgs/PoseStamped.h"
+
+#include <ros/ros.h>
+#include <tf2/LinearMath/Matrix3x3.h>
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2_ros/transform_broadcaster.h>
+#include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/TransformStamped.h>
+#include <nav_msgs/Odometry.h>
+
+#include "RTProtocol.h"
+#include "RTPacket.h"
 
 /*--------------------------------------------------------------------
  * main()
@@ -20,10 +25,10 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "qualisys_node");
     ros::NodeHandle n;
 
-    std::map<std::string, ros::Publisher> publishers;
-
-    // Create a new NodeExample object.
-    //NodeExample *node_example = new NodeExample();
+    // publications
+    std::map<std::string, ros::Publisher> pub_pose;
+    std::map<std::string, ros::Publisher> pub_odom;
+    ros::Time pub_stamp = ros::Time::now();
 
     // Set up a dynamic reconfigure server.
     // This should be done before reading parameter server values.
@@ -33,11 +38,12 @@ int main(int argc, char **argv)
     //dr_srv.setCallback(cb);
 
     // Declare variables that can be modified by launch file or command line.
-    //int a;
-    //int b;
-    //string message;
-    //string topic;
     string server;
+    double rate_limit;
+    int slow_count = 0; // watch for slow publication
+
+    // for real-time we want a small queue_size
+    const int queue_size = 1;
 
     // Initialize node parameters from launch file or command line.
     // Use a private node handle so that multiple instances of the node can
@@ -45,15 +51,8 @@ int main(int argc, char **argv)
     // Parameters defined in the .cfg file do not need to be initialized here
     // as the dynamic_reconfigure::Server does this for you.
     ros::NodeHandle private_node_handle_("~");
-    //private_node_handle_.param("rate", rate, int(40));
-    //private_node_handle_.param("topic", topic, string("example"));
     private_node_handle_.param("server", server, string("127.0.0.1"));
-
-    // Create a publisher and name the topic.
-    //ros::Publisher pub_message = n.advertise<node_example::node_example_data>(topic.c_str(), 10);
-
-    // Tell ROS how fast to run this node.
-    //ros::Rate r(rate);
+    private_node_handle_.param("rate_limit", rate_limit, 10.0);
 
     try
     {
@@ -156,6 +155,8 @@ int main(int argc, char **argv)
                                 }
                             }
 
+                            ros::Time now = ros::Time::now();
+
                             // convert to quaternion
                             tf2::Matrix3x3 R(
                               rotationMatrix[0], rotationMatrix[3], rotationMatrix[6],
@@ -164,23 +165,89 @@ int main(int argc, char **argv)
                             tf2::Quaternion q;
                             R.getRotation(q);
 
-                            // publish pose stamped message
-                            {
-                                if (publishers.find(name) == publishers.end()) {
-                                    ROS_INFO("rigid body %s added", name.c_str());
-                                    publishers[name] = n.advertise<geometry_msgs::PoseStamped>(name + "/pose", 10);
+                            // scale position to meters from mm
+                            double x = fX/1.0e3;
+                            double y = fY/1.0e3;
+                            double z = fZ/1.0e3;
+
+                            // publish data if rate limit met
+                            double elapsed = (now - pub_stamp).toSec();
+                            if (elapsed > 0.99/rate_limit) {
+
+                                if (elapsed > 3.0/rate_limit) {
+                                    slow_count += 1;
+                                    if (slow_count > 10) {
+                                        ROS_WARN_THROTTLE(3, "publication rate low: %10.4f Hz", 1.0/elapsed);
+                                        slow_count = 0;
+                                    }
                                 }
-                                geometry_msgs::PoseStamped msg;
-                                msg.header.frame_id="qualisys";
-                                msg.header.stamp = ros::Time::now();
-                                msg.pose.position.x = fX/1.0e3;
-                                msg.pose.position.y = fY/1.0e3;
-                                msg.pose.position.z = fZ/1.0e3;
-                                msg.pose.orientation.x = q.getX();
-                                msg.pose.orientation.y = q.getY();
-                                msg.pose.orientation.z = q.getZ();
-                                msg.pose.orientation.w = q.getW();
-                                publishers[name].publish(msg);
+
+                                // publish transform
+                                {
+                                    static tf2_ros::TransformBroadcaster br;
+                                    geometry_msgs::TransformStamped transformStamped;
+                                    transformStamped.header.stamp = now;
+                                    transformStamped.header.frame_id = "qualisys";
+                                    transformStamped.child_frame_id = name;
+                                    transformStamped.transform.translation.x = x;
+                                    transformStamped.transform.translation.y = y;
+                                    transformStamped.transform.translation.z = z;
+                                    transformStamped.transform.rotation.x = q.x();
+                                    transformStamped.transform.rotation.y = q.y();
+                                    transformStamped.transform.rotation.z = q.z();
+                                    transformStamped.transform.rotation.w = q.w();
+                                    br.sendTransform(transformStamped);
+                                }
+
+                                // publish pose stamped message
+                                {
+                                    if (pub_pose.find(name) == pub_pose.end()) {
+                                        ROS_INFO("rigid body %s pose added", name.c_str());
+                                        pub_pose[name] = n.advertise<geometry_msgs::PoseStamped>(name + "/pose", queue_size);
+                                    }
+                                    geometry_msgs::PoseStamped msg;
+                                    msg.header.frame_id="qualisys";
+                                    msg.header.stamp = now;
+                                    msg.pose.position.x = x;
+                                    msg.pose.position.y = y;
+                                    msg.pose.position.z = z;
+                                    msg.pose.orientation.x = q.x();
+                                    msg.pose.orientation.y = q.y();
+                                    msg.pose.orientation.z = q.z();
+                                    msg.pose.orientation.w = q.w();
+                                    pub_pose[name].publish(msg);
+                                }
+
+                                // publish odom message
+                                {
+                                    if (pub_odom.find(name) == pub_odom.end()) {
+                                        ROS_INFO("rigid body %s odom added", name.c_str());
+                                        pub_odom[name] = n.advertise<nav_msgs::Odometry>(name + "/odom", queue_size);
+                                    }
+                                    nav_msgs::Odometry msg;
+                                    msg.header.frame_id="qualisys";
+                                    msg.header.stamp = now;
+                                    msg.child_frame_id=name;
+                                    for (int i=0; i < 36; i++) msg.pose.covariance[i] = NAN;
+                                    msg.pose.pose.position.x = x;
+                                    msg.pose.pose.position.y = y;
+                                    msg.pose.pose.position.z = z;
+                                    msg.pose.pose.orientation.x = q.x();
+                                    msg.pose.pose.orientation.y = q.y();
+                                    msg.pose.pose.orientation.z = q.z();
+                                    msg.pose.pose.orientation.w = q.w();
+                                    for (int i=0; i < 36; i++) msg.twist.covariance[i] = NAN;
+                                    msg.twist.twist.linear.x = NAN;
+                                    msg.twist.twist.linear.y = NAN;
+                                    msg.twist.twist.linear.z = NAN;
+                                    msg.twist.twist.angular.x = NAN;
+                                    msg.twist.twist.angular.y = NAN;
+                                    msg.twist.twist.angular.z = NAN;
+                                    pub_odom[name].publish(msg);
+                                }
+
+                                // update pub stamp
+                                pub_stamp = now;
                             }
                         }
                     }
