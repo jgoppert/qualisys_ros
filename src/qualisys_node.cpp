@@ -23,7 +23,7 @@ int main(int argc, char **argv)
 
     // Set up ROS.
     ros::init(argc, argv, "qualisys_node");
-    ros::NodeHandle n;
+    ros::NodeHandle nh("~");;
 
     // publications
     std::map<std::string, ros::Publisher> pub_pose;
@@ -37,7 +37,7 @@ int main(int argc, char **argv)
     //cb = boost::bind(&NodeExample::configCallback, node_example, _1, _2);
     //dr_srv.setCallback(cb);
 
-    // Declare variables that can be modified by launch file or command line.
+    // declare variables that can be modified by launch file or command line.
     string server;
     double rate_limit;
     int slow_count = 0; // watch for slow publication
@@ -45,14 +45,9 @@ int main(int argc, char **argv)
     // for real-time we want a small queue_size
     const int queue_size = 1;
 
-    // Initialize node parameters from launch file or command line.
-    // Use a private node handle so that multiple instances of the node can
-    // be run simultaneously while using different parameters.
-    // Parameters defined in the .cfg file do not need to be initialized here
-    // as the dynamic_reconfigure::Server does this for you.
-    ros::NodeHandle private_node_handle_("~");
-    private_node_handle_.param("server", server, string("127.0.0.1"));
-    private_node_handle_.param("rate_limit", rate_limit, 10.0);
+    // initialize parameters from launch file or command line.
+    nh.param("server", server, string("127.0.0.1"));
+    nh.param("rate_limit", rate_limit, 10.0);
 
     try
     {
@@ -89,7 +84,7 @@ int main(int argc, char **argv)
         unsigned short udpPort = 6734;
 
         // Main loop.
-        while (n.ok())
+        while (nh.ok())
         {
             if (!rtProtocol.Connected())
             {
@@ -203,7 +198,7 @@ int main(int argc, char **argv)
                                 {
                                     if (pub_pose.find(name) == pub_pose.end()) {
                                         ROS_INFO("rigid body %s pose added", name.c_str());
-                                        pub_pose[name] = n.advertise<geometry_msgs::PoseStamped>(name + "/pose", queue_size);
+                                        pub_pose[name] = nh.advertise<geometry_msgs::PoseStamped>(name + "/pose", queue_size);
                                     }
                                     geometry_msgs::PoseStamped msg;
                                     msg.header.frame_id="qualisys";
@@ -222,7 +217,7 @@ int main(int argc, char **argv)
                                 {
                                     if (pub_odom.find(name) == pub_odom.end()) {
                                         ROS_INFO("rigid body %s odom added", name.c_str());
-                                        pub_odom[name] = n.advertise<nav_msgs::Odometry>(name + "/odom", queue_size);
+                                        pub_odom[name] = nh.advertise<nav_msgs::Odometry>(name + "/odom", queue_size);
                                     }
                                     nav_msgs::Odometry msg;
                                     msg.header.frame_id="qualisys";
@@ -256,7 +251,7 @@ int main(int argc, char **argv)
             ros::spinOnce();
         }
         rtProtocol.StreamFramesStop();
-        rtProtocol.Disconnect();
+        rtProtocol.Disconnect()
     }
     catch (std::exception &e)
     {
