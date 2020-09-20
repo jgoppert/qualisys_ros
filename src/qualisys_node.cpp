@@ -251,7 +251,7 @@ int main(int argc, char **argv)
             ros::spinOnce();
         }
         rtProtocol.StreamFramesStop();
-        rtProtocol.Disconnect()
+        rtProtocol.Disconnect();
     }
     catch (std::exception &e)
     {

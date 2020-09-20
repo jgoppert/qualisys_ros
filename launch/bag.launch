@@ -1,0 +1,12 @@
+<launch>
+  <node pkg="tf2_ros" type="static_transform_publisher" name="qualisys_map" args="0 0 0 0 0 0 map qualisys"/>
+  <!--<node name="rviz" pkg="rviz" type="rviz" args="-d $(find qualisys)/launch/qualisys.rviz"/>-->
+  <node name="image_view" pkg="rqt_image_view" type="rqt_image_view" args="/virtual_cam/usb_cam/image_raw"/>
+  <!--<node name="play" pkg="rosbag" type="play" args="-l $(find qualisys)/data/cf1_pose_2020-09-20-09-14-18.bag"/>-->
+  <node name="rqt_bag" pkg="rqt_bag" type="rqt_bag" args="$(find qualisys)/data/cf1_pose_2020-09-20-09-14-18.bag"/>
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="debug" value="false"/>
+    <arg name="verbose" value="true"/>
+    <arg name="world_name" value="$(find qualisys)/worlds/mixed_reality.world"/>
+  </include>
+</launch>

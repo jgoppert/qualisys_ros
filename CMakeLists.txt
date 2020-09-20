@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.0.2)
 project(qualisys)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
@@ -8,6 +8,7 @@ project(qualisys)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS roscpp tf2 tf2_ros)
+find_package(gazebo REQUIRED)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -112,17 +113,34 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-  include/qualisys
   ${catkin_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
+add_library(gazebo_model_pose
+    src/gazebo_model_pose.cpp
+)
+
+target_link_libraries(gazebo_model_pose
+  ${catkin_LIBRARIES}
+  ${GAZEBO_LIBRARIES}
+)
+
+target_include_directories(gazebo_model_pose PUBLIC
+  ${GAZEBO_INCLUDE_DIRS}
+)
+
 add_library(qualisys
     src/qualisys/Markup.cpp
     src/qualisys/Network.cpp
     src/qualisys/RTPacket.cpp
     src/qualisys/RTProtocol.cpp
 )
+
+target_include_directories(qualisys PUBLIC
+  include/qualisys
+)
+
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
