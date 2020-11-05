@@ -1,0 +1,37 @@
+<?xml version="1.0" ?>
+<sdf version="1.7">
+  <world name="default">
+
+    <include>
+      <uri>model://sun</uri>
+    </include>
+
+    <!--<include>-->
+      <!--<uri>model://city</uri>-->
+    <!--</include>-->
+
+    <plugin name="map" filename="libStaticMapPlugin.so">
+      <!--Cleveland Clinic, Abu Dhabi-->
+      <!--<center>24.4959 54.3832</center>-->
+      <!--Northwester Memorial Hospital, Chicago-->
+      <center>41.8950 -87.6215</center>
+      <world_size>400</world_size>
+      <map_type>satellite</map_type>
+      <api_key>AIzaSyDwlQclmWyRlO8Py-O402OiKhK0NMEy0Lk</api_key>
+      <use_cache>true</use_cache>
+    </plugin>
+
+
+    <road name="road1">
+      <width>10</width>
+      <point>0 0 0</point>
+      <point>200 0 0</point>
+      <point>200 100 0</point>
+      <point>0 100 0</point>
+      <point>0 -5 0</point>
+    </road>
+
+
+  </world>
+</sdf>
+<!-- vim: set et fenc=utf-8 ff=unix sts=0 sw=2 ts=2 ft=xml: -->

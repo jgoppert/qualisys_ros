@@ -1,0 +1,21 @@
+<?xml version="1.0" ?>
+<sdf version="1.7">
+  <world name="default">
+
+    <include>
+      <uri>model://sun</uri>
+    </include>
+
+    <!--<include>-->
+      <!--<uri>model://city</uri>-->
+    <!--</include>-->
+
+    <include>
+      <uri>model://airport</uri>
+    </include>
+
+
+
+  </world>
+</sdf>
+<!-- vim: set et fenc=utf-8 ff=unix sts=0 sw=2 ts=2 ft=xml: -->

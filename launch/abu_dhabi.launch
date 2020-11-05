@@ -1,0 +1,16 @@
+<launch>
+  <env name="PX4_HOME_LAT" value="24.495296"/>
+  <env name="PX4_HOME_LON" value="54.3764920"/>
+  <env name="PX4_HOME_ALT" value="0"/>
+  <include file="$(find px4)/launch/multi_uav_mavros_sitl.launch">
+    <arg name="world" value="worlds/abu_dhabi.world"/>
+  </include>
+
+
+  <node pkg="tf2_ros" type="static_transform_publisher" name="qualisys_map" args="0 0 0 0 0 0 map qualisys"/>
+  <node name="image_view" pkg="rqt_image_view" type="rqt_image_view" args="/virtual_cam/usb_cam/image_raw"/>
+
+  <node name="rqt_bag" pkg="rqt_bag" type="rqt_bag" args="$(find qualisys)/data/cf1_pose_2020-09-20-09-14-18.bag"/>
+
+</launch>
+<!-- vim: set et fenc=utf-8 ff=unix sts=0 sw=2 ts=2 : -->
