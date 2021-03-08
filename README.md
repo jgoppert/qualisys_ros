@@ -19,7 +19,7 @@ catkin build
 
 ### Live
 
-The first launch script starts a vehicle for live testing which routes motion capture packets via mavros to a vehicle for navigtional or sensor emulation.
+The first launch script starts a vehicle for live testing which routes motion capture packets via mavros to a vehicle for navigtion or sensor emulation.
 
 ```bash
 . ./devel/setup.bash
@@ -28,7 +28,7 @@ roslaunch qualisys_ros px4_live.launch
 
 ### Simulation
 
-The second launch script starts a simulated world in gazebo which contains a virtual cameras this is positioned using Qualisys mocap data. There is a bag file of qualisys data for offline testing int this repository.
+The second launch script starts a simulated world in Gazebo which contains a virtual camera that is positioned using Qualisys mocap data. A bag file of Qualisys data for offline testing is included in this repository.
 
 ```bash
 . ./devel/setup.bash
