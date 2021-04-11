@@ -1,5 +1,6 @@
 #include <unistd.h>
 #include <math.h>
+#include <map>
 
 #include <ros/ros.h>
 #include <tf2/LinearMath/Matrix3x3.h>
@@ -28,7 +29,8 @@ int main(int argc, char **argv)
     // publications
     std::map<std::string, ros::Publisher> pub_pose;
     std::map<std::string, ros::Publisher> pub_odom;
-    ros::Time pub_stamp = ros::Time::now();
+
+    std::map<std::string, ros::Time> pub_stamps;
 
     // Set up a dynamic reconfigure server.
     // This should be done before reading parameter server values.
@@ -130,13 +132,14 @@ int main(int argc, char **argv)
 
                     CRTPacket *rtPacket = rtProtocol.GetRTPacket();
 
-                    //printf("Frame %d\n", rtPacket->GetFrameNumber());
+                    //ROS_WARN("Frame %d\n", rtPacket->GetFrameNumber());
 
                     for (unsigned int i = 0; i < rtPacket->Get6DOFBodyCount(); i++)
                     {
                         if (rtPacket->Get6DOFBody(i, fX, fY, fZ, rotationMatrix))
                         {
                             string name(rtProtocol.Get6DOFBodyName(i));
+                            //ROS_WARN("data received for rigid body %s", name.c_str());
 
                             if (!isfinite(fX) || !isfinite(fY) || !isfinite(fZ)) {
                                 ROS_WARN_THROTTLE(3, "rigid body %s tracking lost", name.c_str());
@@ -164,92 +167,98 @@ int main(int argc, char **argv)
                             double x = fX/1.0e3;
                             double y = fY/1.0e3;
                             double z = fZ/1.0e3;
+                            double elapsed = 0;
 
                             // publish data if rate limit met
-                            double elapsed = (now - pub_stamp).toSec();
-                            if (elapsed > 0.99/rate_limit) {
+                            if (pub_stamps.count(name) == 0) {
+                                elapsed = 0;
+                            } else {
+                              elapsed = (now - pub_stamps[name]).toSec();
+                              if (elapsed < 0.99/rate_limit) {
+                                // wait
+                                continue;
+                              }
+                            }
+                            pub_stamps[name] = now;
 
-                                if (elapsed > 3.0/rate_limit) {
-                                    slow_count += 1;
-                                    if (slow_count > 10) {
-                                        ROS_WARN_THROTTLE(3, "publication rate low: %10.4f Hz", 1.0/elapsed);
-                                        slow_count = 0;
-                                    }
+                            // warning if slow
+                            if (elapsed > 3.0/rate_limit) {
+                                slow_count += 1;
+                                if (slow_count > 10) {
+                                    ROS_WARN_THROTTLE(3, "publication rate low: %10.4f Hz", 1.0/elapsed);
+                                    slow_count = 0;
                                 }
+                            }
 
-                                // publish transform
-                                {
-                                    static tf2_ros::TransformBroadcaster br;
-                                    geometry_msgs::TransformStamped transformStamped;
-                                    transformStamped.header.stamp = now;
-                                    transformStamped.header.frame_id = "qualisys";
-                                    transformStamped.child_frame_id = name;
-                                    transformStamped.transform.translation.x = x;
-                                    transformStamped.transform.translation.y = y;
-                                    transformStamped.transform.translation.z = z;
-                                    transformStamped.transform.rotation.x = q.x();
-                                    transformStamped.transform.rotation.y = q.y();
-                                    transformStamped.transform.rotation.z = q.z();
-                                    transformStamped.transform.rotation.w = q.w();
-                                    br.sendTransform(transformStamped);
+                            // publish transform
+                            {
+                                static tf2_ros::TransformBroadcaster br;
+                                geometry_msgs::TransformStamped transformStamped;
+                                transformStamped.header.stamp = now;
+                                transformStamped.header.frame_id = "qualisys";
+                                transformStamped.child_frame_id = name;
+                                transformStamped.transform.translation.x = x;
+                                transformStamped.transform.translation.y = y;
+                                transformStamped.transform.translation.z = z;
+                                transformStamped.transform.rotation.x = q.x();
+                                transformStamped.transform.rotation.y = q.y();
+                                transformStamped.transform.rotation.z = q.z();
+                                transformStamped.transform.rotation.w = q.w();
+                                br.sendTransform(transformStamped);
+                            }
+
+                            // publish pose stamped message
+                            {
+                                if (pub_pose.find(name) == pub_pose.end()) {
+                                    ROS_INFO("rigid body %s pose added", name.c_str());
+                                    pub_pose[name] = nh.advertise<geometry_msgs::PoseStamped>(name + "/pose", queue_size);
                                 }
+                                geometry_msgs::PoseStamped msg;
+                                msg.header.frame_id="qualisys";
+                                msg.header.stamp = now;
+                                msg.pose.position.x = x;
+                                msg.pose.position.y = y;
+                                msg.pose.position.z = z;
+                                msg.pose.orientation.x = q.x();
+                                msg.pose.orientation.y = q.y();
+                                msg.pose.orientation.z = q.z();
+                                msg.pose.orientation.w = q.w();
+                                pub_pose[name].publish(msg);
+                            }
 
-                                // publish pose stamped message
-                                {
-                                    if (pub_pose.find(name) == pub_pose.end()) {
-                                        ROS_INFO("rigid body %s pose added", name.c_str());
-                                        pub_pose[name] = nh.advertise<geometry_msgs::PoseStamped>(name + "/pose", queue_size);
-                                    }
-                                    geometry_msgs::PoseStamped msg;
-                                    msg.header.frame_id="qualisys";
-                                    msg.header.stamp = now;
-                                    msg.pose.position.x = x;
-                                    msg.pose.position.y = y;
-                                    msg.pose.position.z = z;
-                                    msg.pose.orientation.x = q.x();
-                                    msg.pose.orientation.y = q.y();
-                                    msg.pose.orientation.z = q.z();
-                                    msg.pose.orientation.w = q.w();
-                                    pub_pose[name].publish(msg);
+                            // publish odom message
+                            {
+                                if (pub_odom.find(name) == pub_odom.end()) {
+                                    ROS_INFO("rigid body %s odom added", name.c_str());
+                                    pub_odom[name] = nh.advertise<nav_msgs::Odometry>(name + "/odom", queue_size);
                                 }
-
-                                // publish odom message
-                                {
-                                    if (pub_odom.find(name) == pub_odom.end()) {
-                                        ROS_INFO("rigid body %s odom added", name.c_str());
-                                        pub_odom[name] = nh.advertise<nav_msgs::Odometry>(name + "/odom", queue_size);
-                                    }
-                                    nav_msgs::Odometry msg;
-                                    msg.header.frame_id="qualisys";
-                                    msg.header.stamp = now;
-                                    msg.child_frame_id=name;
-                                    for (int i=0; i < 36; i++) msg.pose.covariance[i] = NAN;
-                                    msg.pose.pose.position.x = x;
-                                    msg.pose.pose.position.y = y;
-                                    msg.pose.pose.position.z = z;
-                                    msg.pose.pose.orientation.x = q.x();
-                                    msg.pose.pose.orientation.y = q.y();
-                                    msg.pose.pose.orientation.z = q.z();
-                                    msg.pose.pose.orientation.w = q.w();
-                                    for (int i=0; i < 36; i++) msg.twist.covariance[i] = NAN;
-                                    msg.twist.twist.linear.x = NAN;
-                                    msg.twist.twist.linear.y = NAN;
-                                    msg.twist.twist.linear.z = NAN;
-                                    msg.twist.twist.angular.x = NAN;
-                                    msg.twist.twist.angular.y = NAN;
-                                    msg.twist.twist.angular.z = NAN;
-                                    pub_odom[name].publish(msg);
-                                }
-
-                                // update pub stamp
-                                pub_stamp = now;
+                                nav_msgs::Odometry msg;
+                                msg.header.frame_id="qualisys";
+                                msg.header.stamp = now;
+                                msg.child_frame_id=name;
+                                for (int i=0; i < 36; i++) msg.pose.covariance[i] = NAN;
+                                msg.pose.pose.position.x = x;
+                                msg.pose.pose.position.y = y;
+                                msg.pose.pose.position.z = z;
+                                msg.pose.pose.orientation.x = q.x();
+                                msg.pose.pose.orientation.y = q.y();
+                                msg.pose.pose.orientation.z = q.z();
+                                msg.pose.pose.orientation.w = q.w();
+                                for (int i=0; i < 36; i++) msg.twist.covariance[i] = NAN;
+                                msg.twist.twist.linear.x = NAN;
+                                msg.twist.twist.linear.y = NAN;
+                                msg.twist.twist.linear.z = NAN;
+                                msg.twist.twist.angular.x = NAN;
+                                msg.twist.twist.angular.y = NAN;
+                                msg.twist.twist.angular.z = NAN;
+                                pub_odom[name].publish(msg);
                             }
                         }
                     }
                 }
             }
-            ros::spinOnce();
         }
+        ros::spinOnce();
         rtProtocol.StreamFramesStop();
         rtProtocol.Disconnect();
     }

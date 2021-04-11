@@ -4,3 +4,4 @@ plugin_whitelist:
 - odom 
 - sys_status
 - command
+- 'setpoint*'
