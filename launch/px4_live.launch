@@ -1,8 +1,9 @@
 <launch>
-  <arg name="server" default="127.0.0.1"/>
+  <arg name="server" default="192.168.1.2"/>
   <arg name="rate_limit" default="10"/>
+  <arg name="vehicle" default="hb1"/>
 
-  <node pkg="topic_tools" type="relay" name="relay" output="screen" args="/qualisys/hb1/odom /mavros/odometry/out"/>
+  <node pkg="topic_tools" type="relay" name="relay" output="screen" args="/qualisys/$(arg vehicle)/odom /mavros/odometry/out"/>
 
   <node pkg="qualisys" type="node" name="qualisys" output="screen">
     <param name="server" value="$(arg server)"/>
@@ -31,11 +32,11 @@
 		<rosparam command="load" file="$(arg config_yaml)" />
 	</node>
 
-  <node pkg="tf2_ros" type="static_transform_publisher" name="hb1_base_link" args="0 0 0 0 0 0 hb1 base_link"/>
+  <node pkg="tf2_ros" type="static_transform_publisher" name="$(arg vehicle)_base_link" args="0 0 0 0 0 0 $(arg vehicle) base_link"/>
   <node pkg="tf2_ros" type="static_transform_publisher" name="qualisys_map" args="0 0 0 1.5707 0 0 map qualisys"/>
   <node pkg="tf2_ros" type="static_transform_publisher" name="map_odom" args="0 0 0 0 0 0 map odom"/>
 
   <node type="rviz" name="rviz" pkg="rviz" args="-d $(find qualisys)/launch/qualisys.rviz"/>
 
-  <node name="record" pkg="rosbag" type="record" args="record -o cf1_pose /qualisys/cf1/pose"/>
+  <node name="record" pkg="rosbag" type="record" args="record -o $(arg vehicle)_pose /qualisys/$(arg vehicle)/pose"/>
 </launch>
