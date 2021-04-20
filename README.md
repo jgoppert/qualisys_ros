@@ -32,5 +32,5 @@ The second launch script starts a simulated world in Gazebo which contains a vir
 
 ```bash
 . ./devel/setup.bash
-roslaunch qualisys_ros abu_dhabi.launch
+roslaunch qualisys_ros bag.launch
 ```
