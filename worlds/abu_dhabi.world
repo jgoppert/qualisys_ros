@@ -80,7 +80,7 @@
     </model>
 
 	<include>
-	  <uri>model://virtual_cam</uri>
+	  <uri>model://iris_virtual</uri>
 	</include>
 
     <gui fullscreen='0'>

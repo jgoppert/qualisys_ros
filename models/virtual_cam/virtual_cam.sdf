@@ -68,7 +68,7 @@
       <kinematic>1</kinematic>
     </link>
 	<plugin name="virtual_cam" filename="libgazebo_model_pose.so">
-		<topic>/qualisys/cf1/pose</topic>
+		<topic>/qualisys/hb1/pose</topic>
 	</plugin>
   </model>
 </sdf>
