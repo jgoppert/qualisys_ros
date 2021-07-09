@@ -10,7 +10,7 @@
     <param name="rate_limit" value="$(arg rate_limit)"/>
   </node>
 
-  <arg name="fcu_url" value="/dev/ttyUSB0:57600"/>
+  <arg name="fcu_url" value="udp://0.0.0.0:14018@192.168.123.18:14557"/>
 	<arg name="gcs_url" value="udp://@127.0.0.1"/>
 	<arg name="tgt_system" value="1"/>
 	<arg name="tgt_component" value="1"/>
