@@ -27,23 +27,23 @@
       <real_time_update_rate>1000</real_time_update_rate>
     </physics>
     <scene>
-      <ambient>0.4 0.4 0.4 1</ambient>
+      <ambient>0.9 0.9 0.9 1</ambient>
       <background>0.7 0.7 0.7 1</background>
       <shadows>1</shadows>
-	  <sky>
-		<clouds>
-		  <speed>12</speed>
-		</clouds>
-	  </sky>
-	  <fog>
-		  <type>linear</type>
-		  <start>10</start>
-		  <end>500</end>
-		  <density>1</density>
-	  </fog>
+    <sky>
+    <clouds>
+      <speed>12</speed>
+    </clouds>
+    </sky>
+    <fog>
+      <type>linear</type>
+      <start>10</start>
+      <end>500</end>
+      <density>1</density>
+    </fog>
     </scene>
     <model name='abu_dhabi'>
-      <pose>0.003838 0.003871 -3.5 0 -0 0</pose>
+      <pose>-50 -1.5 0 0 0 0.88</pose>
       <static>1</static>
       <link name='terrain'>
         <visual name='visual'>
@@ -69,6 +69,7 @@
             </mesh>
           </geometry>
         </visual>
+        <!--
         <collision name='collision'>
           <geometry>
             <mesh>
@@ -76,18 +77,28 @@
             </mesh>
           </geometry>
         </collision>
+        -->
       </link>
     </model>
 
-	<include>
-	  <uri>model://iris_virtual</uri>
-	</include>
+    <include>
+      <pose>0 0 0 0 0 0</pose>
+      <uri>model://iris_virtual</uri>
+    </include>
 
     <gui fullscreen='0'>
       <camera name='user_camera'>
-        <pose>-1.50024 -204.418 137.241 0 0.487641 1.62819</pose>
+        <pose>-10 10 10 0 0 0</pose>
         <view_controller>orbit</view_controller>
         <projection_type>perspective</projection_type>
+        <track_visual>
+          <name>iris_virtual</name>
+          <follow>true</follow>
+          <xyz>-10 10 10 </xyz>
+          <static>true</static>
+          <min_dist>1.0</min_dist>
+          <max_dist>100.0</max_dist>
+        </track_visual>
       </camera>
     </gui>
   </world>
