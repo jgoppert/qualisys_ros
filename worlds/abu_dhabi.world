@@ -79,9 +79,9 @@
       </link>
     </model>
 
-	<include>
-	  <uri>model://iris_virtual</uri>
-	</include>
+	<!--<include>-->
+		<!--<uri>model://iris_virtual</uri>-->
+	<!--</include>-->
 
     <gui fullscreen='0'>
       <camera name='user_camera'>
