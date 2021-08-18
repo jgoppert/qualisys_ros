@@ -2,7 +2,7 @@
   <env name="PX4_HOME_LAT" value="24.495296"/>
   <env name="PX4_HOME_LON" value="54.3764920"/>
   <env name="PX4_HOME_ALT" value="0"/>
-  <include file="$(find px4)/launch/multi_uav_mavros_sitl.launch">
+  <include file="$(find qualisys)/launch/multi_uav_mavros_sitl.launch">
     <arg name="world" value="worlds/abu_dhabi.world"/>
   </include>
 
