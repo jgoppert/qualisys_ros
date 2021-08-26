@@ -81,9 +81,9 @@
       </link>
     </model>
 
-	<!--<include>-->
-		<!--<uri>model://iris_virtual</uri>-->
-	<!--</include>-->
+  <include>
+    <uri>model://virtual_cam</uri>
+  </include>
 
     <gui fullscreen='0'>
       <camera name='user_camera'>
@@ -91,7 +91,7 @@
         <view_controller>orbit</view_controller>
         <projection_type>perspective</projection_type>
         <track_visual>
-          <name>iris_virtual</name>
+          <name>virtual_cam</name>
           <follow>true</follow>
           <xyz>-10 10 10 </xyz>
           <static>true</static>
