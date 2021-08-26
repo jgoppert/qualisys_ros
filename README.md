@@ -39,10 +39,18 @@ roslaunch qualisys_ros bag.launch
 
 This starts a web video server to stream images from the cameras to a browser.
 
-See (Ros Web Video Server Wiki)[http://wiki.ros.org/web_video_server]
+See [Ros Web Video Server Wiki](http://wiki.ros.org/web_video_server)
 
 ```bash
 sudo apt install ros-noetic-web-video-server
 . ./devel/setup.bash
 rosrun web_video_server web_video_server
 ```
+
+Now try going to your browser to view the video
+
+```bash
+http://localhost:8080/stream?topic=/virtual_cam/usb_cam/image_raw
+```
+
+Note localhost should be changed to the ip address on the local network of the simulation computer if viewing from a phone etc.
