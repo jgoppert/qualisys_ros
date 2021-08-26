@@ -34,3 +34,15 @@ The second launch script starts a simulated world in Gazebo which contains a vir
 . ./devel/setup.bash
 roslaunch qualisys_ros bag.launch
 ```
+
+### Web Video Server
+
+This starts a web video server to stream images from the cameras to a browser.
+
+See (Ros Web Video Server Wiki)[http://wiki.ros.org/web_video_server]
+
+```bash
+sudo apt install ros-noetic-web-video-server
+. ./devel/setup.bash
+rosrun web_video_server web_video_server
+```
