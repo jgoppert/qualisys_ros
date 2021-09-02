@@ -8,9 +8,14 @@
 
 
   <node pkg="tf2_ros" type="static_transform_publisher" name="qualisys_map" args="0 0 0 0 0 0 map qualisys"/>
-  <node name="image_view" pkg="rqt_image_view" type="rqt_image_view" args="/virtual_cam/usb_cam/image_raw"/>
+  <node name="image_view" pkg="rqt_image_view" type="rqt_image_view" args="/vr_image"/>
 
   <node name="rqt_bag" pkg="rqt_bag" type="rqt_bag" args="$(find qualisys)/data/cf1_pose_2020-09-20-09-14-18.bag"/>
+    p
+
+  <node name="web_video_server" pkg="web_video_server" type="web_video_server" output="screen"/>
+
+  <node name="image_combine" pkg="qualisys" type="image_combine.py" output="screen"/>
 
 </launch>
 <!-- vim: set et fenc=utf-8 ff=unix sts=0 sw=2 ts=2 : -->
