@@ -27,7 +27,7 @@
   <env name="PX4_SIM_MODEL" value="$(arg vehicle)" />
   <env name="PX4_ESTIMATOR" value="$(arg est)" />
   <node name="sitl" pkg="px4" type="px4" output="screen" launch-prefix="xterm -e"
-    args="$(find px4)/../../build/px4/etc -s etc/init.d-posix/rcS" required="true"/>
+    args="$(find px4)/../../../build/px4/etc -s etc/init.d-posix/rcS" required="true"/>
 
   <!--gazebo-->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
