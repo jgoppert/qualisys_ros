@@ -51,7 +51,7 @@ int main(int argc, char **argv)
     // initialize parameters from launch file or command line.
     nh.param("server", server, string("127.0.0.1"));
     nh.param("rate_limit", rate_limit, 10.0);
-    nh.param("parent_frame", parent_frame, "qualisys");
+    nh.param("parent_frame", parent_frame, string("qualisys"));
 
     try
     {
