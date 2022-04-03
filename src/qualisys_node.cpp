@@ -127,6 +127,7 @@ int main(int argc, char **argv)
             {
                 if (packetType == CRTPacket::PacketData)
                 {
+                    ros::Time now = ros::Time::now();
                     float fX, fY, fZ;
                     float rotationMatrix[9];
 
@@ -136,6 +137,7 @@ int main(int argc, char **argv)
 
                     for (unsigned int i = 0; i < rtPacket->Get6DOFBodyCount(); i++)
                     {
+
                         if (rtPacket->Get6DOFBody(i, fX, fY, fZ, rotationMatrix))
                         {
                             string name(rtProtocol.Get6DOFBodyName(i));
@@ -153,7 +155,6 @@ int main(int argc, char **argv)
                                 }
                             }
 
-                            ros::Time now = ros::Time::now();
 
                             // convert to quaternion
                             tf2::Matrix3x3 R(
