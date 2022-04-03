@@ -41,6 +41,7 @@ int main(int argc, char **argv)
 
     // declare variables that can be modified by launch file or command line.
     string server;
+    string parent_frame;
     double rate_limit;
     int slow_count = 0; // watch for slow publication
 
@@ -50,6 +51,7 @@ int main(int argc, char **argv)
     // initialize parameters from launch file or command line.
     nh.param("server", server, string("127.0.0.1"));
     nh.param("rate_limit", rate_limit, 10.0);
+    nh.param("parent_frame", parent_frame, "qualisys");
 
     try
     {
@@ -196,7 +198,7 @@ int main(int argc, char **argv)
                                 static tf2_ros::TransformBroadcaster br;
                                 geometry_msgs::TransformStamped transformStamped;
                                 transformStamped.header.stamp = now;
-                                transformStamped.header.frame_id = "qualisys";
+                                transformStamped.header.frame_id = parent_frame;
                                 transformStamped.child_frame_id = name;
                                 transformStamped.transform.translation.x = x;
                                 transformStamped.transform.translation.y = y;
@@ -215,7 +217,7 @@ int main(int argc, char **argv)
                                     pub_pose[name] = nh.advertise<geometry_msgs::PoseStamped>(name + "/pose", queue_size);
                                 }
                                 geometry_msgs::PoseStamped msg;
-                                msg.header.frame_id="qualisys";
+                                msg.header.frame_id= parent_frame;
                                 msg.header.stamp = now;
                                 msg.pose.position.x = x;
                                 msg.pose.position.y = y;
@@ -234,7 +236,7 @@ int main(int argc, char **argv)
                                     pub_odom[name] = nh.advertise<nav_msgs::Odometry>(name + "/odom", queue_size);
                                 }
                                 nav_msgs::Odometry msg;
-                                msg.header.frame_id="qualisys";
+                                msg.header.frame_id= parent_frame;
                                 msg.header.stamp = now;
                                 msg.child_frame_id=name;
                                 for (int i=0; i < 36; i++) msg.pose.covariance[i] = NAN;
