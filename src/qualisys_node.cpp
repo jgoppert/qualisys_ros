@@ -194,6 +194,7 @@ int main(int argc, char **argv)
                             }
 
                             // publish transform
+							/*
                             {
                                 static tf2_ros::TransformBroadcaster br;
                                 geometry_msgs::TransformStamped transformStamped;
@@ -209,7 +210,9 @@ int main(int argc, char **argv)
                                 transformStamped.transform.rotation.w = q.w();
                                 br.sendTransform(transformStamped);
                             }
+							*/
 
+							/*
                             // publish pose stamped message
                             {
                                 if (pub_pose.find(name) == pub_pose.end()) {
@@ -228,6 +231,7 @@ int main(int argc, char **argv)
                                 msg.pose.orientation.w = q.w();
                                 pub_pose[name].publish(msg);
                             }
+							*/
 
                             // publish odom message
                             {
